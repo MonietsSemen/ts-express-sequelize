@@ -1,0 +1,9 @@
+dist
+types
+migrations
+src/db/seeds
+src/api/services/shopify/schema/*
+src/api/tests/__mocks__/shopifyResponses/*
+src/api/services/shopify/assets/recharge-product-template.ts
+src/admin/public/assets/*
+**/*.js
