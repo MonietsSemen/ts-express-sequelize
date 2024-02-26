@@ -19,7 +19,10 @@ class UserController {
 
   @SafeController
   static async show(_req: Request, res: LoadedUserResponse, _next: NextFunction) {
-    res.json({ user: res.locals.user });
+    // eslint-disable-next-line no-shadow
+    const { user } = res.locals;
+    const orders = await user.getOrders();
+    res.json({ user: res.locals.user, userOrders: orders });
   }
 
   @SafeController

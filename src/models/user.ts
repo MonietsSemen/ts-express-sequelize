@@ -5,7 +5,10 @@ import {
   Sequelize,
   DataTypes,
   CreationOptional,
+  HasManyCreateAssociationMixin,
+  HasManyGetAssociationsMixin,
 } from 'sequelize';
+import Order from '@/models/order';
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare readonly id: CreationOptional<number>;
@@ -23,6 +26,10 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
+
+  declare createOrder: HasManyCreateAssociationMixin<Order, 'userId'>;
+
+  declare getOrders: HasManyGetAssociationsMixin<Order>;
 }
 
 export const init = (sequelize: Sequelize) =>
@@ -48,7 +55,16 @@ export const init = (sequelize: Sequelize) =>
     {
       sequelize,
       tableName: 'users',
+      modelName: 'User',
     },
   );
+
+export const associate = ({ models }: Sequelize) => {
+  User.hasMany(Order, {
+    as: 'orders',
+    constraints: false,
+    foreignKey: 'userId',
+  });
+};
 
 export default User;
