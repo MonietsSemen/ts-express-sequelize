@@ -23,6 +23,8 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
 
   declare description: string | null;
 
+  declare lastName?: string;
+
   declare createdAt: CreationOptional<Date>;
 
   declare updatedAt: CreationOptional<Date>;
@@ -49,13 +51,13 @@ export const init = (sequelize: Sequelize) =>
         defaultValue: 'staff',
       },
       description: DataTypes.STRING,
+      lastName: DataTypes.STRING,
       createdAt: DataTypes.DATE,
       updatedAt: DataTypes.DATE,
     },
     {
       sequelize,
       tableName: 'users',
-      modelName: 'User',
     },
   );
 
