@@ -24,7 +24,7 @@ app.use(bodyParser.json({ limit: '15mb' }));
 
 if (!sequelize) throw new Error("Can't connect to database");
 
-app.use(router);
+app.use('/api', router);
 app.use(errorHandler);
 
 process

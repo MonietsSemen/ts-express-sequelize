@@ -6,6 +6,7 @@ import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 
 type LoadedOrderResponse<T = any> = Response<T, { order: Order; [index: string]: unknown }>;
+
 class OrderController {
   @SafeController
   static async load(req: Request, res: Response, next: NextFunction) {
