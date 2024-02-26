@@ -36,9 +36,9 @@ class OrderController {
     const { userId } = req.body;
     const user = await User.findByPk(userId);
 
-    const orders = await user?.createOrder(orderData);
-
     if (!user) throw res.status(NOT_FOUND).send('User not found');
+
+    const orders = await user?.createOrder(orderData);
 
     res.json({ orders });
   }

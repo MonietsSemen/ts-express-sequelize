@@ -3,6 +3,7 @@ import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
+import Order from '@/models/order';
 
 type LoadedUserResponse<T = any> = Response<T, { user: User; [index: string]: unknown }>;
 class UserController {
@@ -21,7 +22,13 @@ class UserController {
   static async show(_req: Request, res: LoadedUserResponse, _next: NextFunction) {
     // eslint-disable-next-line no-shadow
     const { user } = res.locals;
-    const orders = await user.getOrders();
+
+    const orders = await Order.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+
     res.json({ user: res.locals.user, userOrders: orders });
   }
 
