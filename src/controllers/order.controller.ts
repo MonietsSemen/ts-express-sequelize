@@ -6,6 +6,7 @@ import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 
 type LoadedOrderResponse<T = any> = Response<T, { order: Order; [index: string]: unknown }>;
+
 class OrderController {
   @SafeController
   static async load(req: Request, res: Response, next: NextFunction) {
@@ -36,9 +37,9 @@ class OrderController {
     const { userId } = req.body;
     const user = await User.findByPk(userId);
 
-    const orders = await user?.createOrder(orderData);
-
     if (!user) throw res.status(NOT_FOUND).send('User not found');
+
+    const orders = await user?.createOrder(orderData);
 
     res.json({ orders });
   }
