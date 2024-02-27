@@ -3,6 +3,8 @@ import pg from 'pg';
 import { Options, Sequelize } from 'sequelize';
 import * as Order from '@/models/order';
 import * as User from '@/models/user';
+import * as Product from '@/models/product';
+import * as Collection from '@/models/collection';
 import config from '@/db/config';
 import env from '@/configs/env';
 
@@ -22,7 +24,7 @@ const sequelize = createConnection();
 // return bigint in number instead of string
 pg.defaults.parseInt8 = true;
 
-const models: AppModel[] = [Order, User];
+const models: AppModel[] = [Collection, Product, Order, User];
 
 models.forEach((model) => model.init(sequelize));
 models.forEach((model) => {
