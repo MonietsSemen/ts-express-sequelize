@@ -1,9 +1,11 @@
-import { NextFunction, Request, Response } from 'express';
+import { Locals, NextFunction, Request, Response } from 'express';
 import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes, Op } from 'sequelize';
-import { SafeController } from '@/controllers/decorators';
+import { URLSearchParams } from 'url';
+import { CreatePagination, SafeController, Pagination } from '@/controllers/decorators';
 import Collection from '@/models/collection';
 import Product from '@/models/product';
+import env from '@/configs/env';
 
 // eslint-disable-next-line max-len
 type LoadedCollectionResponse<T = any> = Response<
@@ -24,62 +26,83 @@ class CollectionController {
   }
 
   @SafeController
-  static async show(_req: Request, res: LoadedCollectionResponse, _next: NextFunction) {
-    // eslint-disable-next-line no-shadow
-    const { collection } = res.locals;
-
+  @CreatePagination
+  static async show(
+    _req: Request,
+    res: Response<
+      any,
+      {
+        collection: Collection;
+        pagination: Pagination;
+        limitNumber: number;
+        currentPageNumber: number;
+      } & Record<string, any> &
+        Locals
+    >,
+    _next: NextFunction,
+  ) {
+    const { collection, pagination, limitNumber, currentPageNumber } = res.locals;
     // filtration
-    const { priceMin, priceMax, page, limit } = _req.query;
-    const defaultMinCheckPrice = 0;
-    const defaultMaxCheckPrice = 999999;
+    const { priceMin, priceMax } = _req.query;
 
-    const priceMinNumber: number = parseInt(priceMin as string, 10) || defaultMinCheckPrice;
-    const priceMaxNumber: number = parseInt(priceMax as string, 10) || defaultMaxCheckPrice;
+    const priceMinNumber = parseInt(priceMin as string, 10) || undefined;
+    const priceMaxNumber = parseInt(priceMax as string, 10) || undefined;
 
-    // pagination
-    const defaultLimit = 50;
-    const defaultOffsetNumber = 1;
-    const limitNumber: number = parseInt(limit as string, 10) || defaultLimit;
-    const offsetNumber: number = parseInt(page as string, 10) || defaultOffsetNumber;
-
-    const products = await Product.findAndCountAll({
+    const productsQuery: any = {
       where: {
         collectionId: collection.id,
-        price: {
-          [Op.between]: [priceMinNumber, priceMaxNumber],
-        },
       },
-      offset: offsetNumber,
-      limit: limitNumber,
-    });
+      limit: pagination.limit,
+      offset: pagination.offset,
+    };
 
-    const allPagesCount = Math.ceil(
-      products.count / limitNumber > 1 ? products.count / limitNumber : 1,
-    );
-    const nextPageUrl: string | null =
-      offsetNumber >= allPagesCount
-        ? null
-        : `${_req.baseUrl}/${collection.id}?priceMin=${priceMin || ''}&priceMax=${
-            priceMax || ''
-          }&page=${offsetNumber + 1}&limit=${limit || ''}`;
-    const prevPageUrl: string | null =
-      offsetNumber <= 1
-        ? null
-        : `${_req.baseUrl}/${collection.id}?priceMin=${priceMin || ''}&priceMax=${
-            priceMax || ''
-          }&page=${offsetNumber - 1}&limit=${limit || ''}`;
+    if (priceMinNumber || priceMaxNumber) {
+      productsQuery.where.price = {
+        [Op.between]: [priceMinNumber || 0, priceMaxNumber || 99999],
+      };
+    }
 
-    res.json({
+    const items = await Product.findAndCountAll(productsQuery);
+
+    if (!items) throw res.status(NOT_FOUND).send('Products not found');
+
+    const allPagesCount = Math.ceil(items.count / limitNumber > 1 ? items.count / limitNumber : 1);
+
+    const createPaginationUrl = (nextPage: boolean) => {
+      const url: any = new URL(`${env.domain}${_req.originalUrl}`);
+      const params: any = new URLSearchParams();
+      // if previous page - do not modified page number
+      const modifierPageNumber: number = !nextPage ? 0 : 2;
+
+      if (currentPageNumber < 1 && !nextPage) {
+        return null;
+      }
+
+      if (currentPageNumber >= allPagesCount - 1 && nextPage) {
+        return null;
+      }
+
+      params.append('page', `${currentPageNumber + modifierPageNumber}`);
+      params.append('limit', `${pagination.limit || ''}`);
+      url.search = params.toString();
+      return url.toString();
+    };
+
+    const nextPageUrl = createPaginationUrl(true);
+    const prevPageUrl = createPaginationUrl(false);
+    const responseData = {
       collection: res.locals.collection,
-      collectionProducts: products,
+      collectionProducts: items,
       pagination: {
-        allProductsCount: products.count,
-        currentPage: offsetNumber,
+        allProductsCount: items.count,
+        currentPage: currentPageNumber + 1,
         allPages: allPagesCount,
         nextUrl: nextPageUrl,
         prevUrl: prevPageUrl,
       },
-    });
+    };
+
+    res.json(responseData);
   }
 
   @SafeController
