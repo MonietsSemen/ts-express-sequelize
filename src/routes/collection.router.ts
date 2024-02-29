@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import CollectionController from '@/controllers/collection.controller';
-import { CollectionFilters } from '@/middlewares/collection-filters';
+import CollectionFilters from '@/middlewares/collection-filters';
 
 const router = Router();
 

@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { Op } from 'sequelize';
 import { SafeController } from '@/controllers/decorators';
 
-export class CollectionFilters {
+export default class CollectionFilters {
   @SafeController
   static async filterByDate(req: Request, res: Response, next: NextFunction) {
     const { dateStart, dateEnd } = req.query;
@@ -15,8 +15,9 @@ export class CollectionFilters {
           : DateTime.fromISO('1990-01-01').toUTC();
       const objectDateEnd =
         typeof dateEnd === 'string' ? DateTime.fromISO(dateEnd) : DateTime.now().toUTC();
-      // eslint-disable-next-line no-param-reassign
-      const dateFilter = { [Op.between]: [objectDateStart?.toString(), objectDateEnd?.toString()] };
+      const dateFilter = {
+        [Op.between]: [objectDateStart?.toString(), objectDateEnd?.toString()],
+      };
 
       res.locals = { ...res.locals, dateFilter };
     }
@@ -31,8 +32,7 @@ export class CollectionFilters {
     const priceMaxNumber = parseInt(priceMax as string, 10) || undefined;
 
     if (priceMinNumber || priceMaxNumber) {
-      // eslint-disable-next-line no-param-reassign
-      const priceFilter = { [Op.between]: [priceMinNumber || 0, priceMaxNumber || 99999]};
+      const priceFilter = { [Op.between]: [priceMinNumber || 0, priceMaxNumber || 99999] };
       res.locals = { ...res.locals, priceFilter };
     }
 

@@ -1,4 +1,4 @@
-import { Locals, NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes, Op } from 'sequelize';
 import { URLSearchParams } from 'url';
@@ -7,7 +7,6 @@ import Collection from '@/models/collection';
 import Product from '@/models/product';
 import env from '@/configs/env';
 
-// eslint-disable-next-line max-len
 type LoadedCollectionResponse<T = any> = Response<
   T,
   { collection: Collection; [index: string]: unknown }
@@ -19,7 +18,7 @@ class CollectionController {
     const { collectionId } = req.params;
     const collection = await Collection.findByPk(collectionId);
 
-    if (!collection) throw res.status(NOT_FOUND).send('Collections not found');
+    if (!collection) throw res.status(NOT_FOUND).json({ message: 'Collections not found' });
 
     res.locals = { ...res.locals, collection };
     next();
@@ -31,16 +30,16 @@ class CollectionController {
     req: Request,
     res: Response<
       any,
-      Record<string, any> &
-        Locals & {
-          collection: Collection;
-          pagination: Pagination;
-          limitNumber: number;
-        }
+      {
+        collection: Collection;
+        pagination: Pagination;
+        priceFilter: number[] | undefined;
+        dateFilter: string[] | undefined;
+      }
     >,
     _next: NextFunction,
   ) {
-    const { collection, pagination, limitNumber, priceFilter, dateFilter } = res.locals;
+    const { collection, pagination, priceFilter, dateFilter } = res.locals;
 
     const currentPageNumber = pagination.offset / pagination.limit;
     const productsQuery: any = {
@@ -56,26 +55,19 @@ class CollectionController {
 
     const items = await Product.findAndCountAll(productsQuery);
 
-    if (!items) throw res.status(NOT_FOUND).send('Products not found');
+    if (!items) throw res.status(NOT_FOUND).json({ message: 'Products not found' });
 
     const allPagesCount = Math.ceil(
-      items.count / pagination.limit > 1 ? items.count / limitNumber : 1,
+      items.count / pagination.limit > 1 ? items.count / pagination.limit : 1,
     );
 
-    const nextPageUrl = CollectionController.createPaginationUrl(
-      true,
+    const pagesUrl = CollectionController.createPaginationUrls(
       pagination.limit,
       currentPageNumber,
       req.originalUrl,
       allPagesCount,
     );
-    const prevPageUrl = CollectionController.createPaginationUrl(
-      false,
-      pagination.limit,
-      currentPageNumber,
-      req.originalUrl,
-      allPagesCount,
-    );
+
     const responseData = {
       collection: res.locals.collection,
       collectionProducts: items,
@@ -83,8 +75,8 @@ class CollectionController {
         allProductsCount: items.count,
         currentPage: currentPageNumber + 1,
         allPages: allPagesCount,
-        nextUrl: nextPageUrl,
-        prevUrl: prevPageUrl,
+        nextUrl: pagesUrl.nextPage,
+        prevUrl: pagesUrl.prevPage,
       },
     };
 
@@ -121,30 +113,37 @@ class CollectionController {
     res.status(NO_CONTENT).send();
   }
 
-  static createPaginationUrl = (
-    nextPage: boolean,
+  static createPaginationUrls = (
     paginationLimit: number,
     currentPage: number,
     originalUrl: string,
     allPagesCount: number,
   ) => {
-    const url: any = new URL(`${env.domain}${originalUrl}`);
-    const params: any = new URLSearchParams();
-    // if previous page - do not modified page number
-    const modifierPageNumber: number = !nextPage ? 0 : 2;
+    type PaginationUrls = {
+      nextPage: string | null;
+      prevPage: string | null;
+    };
 
-    if (currentPage < 1 && !nextPage) {
-      return null;
-    }
+    const nextPageArr = [true, false];
+    const paginationUrls = { nextPage: '', prevPage: '' };
+    nextPageArr.forEach((nextPage) => {
+      const url: any = new URL(`${env.domain}${originalUrl}`);
+      const params: any = new URLSearchParams();
+      // if previous page - do not modified page number
+      const modifierPageNumber: number = !nextPage ? 0 : 2;
 
-    if (currentPage >= allPagesCount - 1 && nextPage) {
-      return null;
-    }
+      if (currentPage < 1 && !nextPage) return;
 
-    params.append('page', `${currentPage + modifierPageNumber}`);
-    params.append('limit', `${paginationLimit || ''}`);
-    url.search = params.toString();
-    return url.toString();
+      if (currentPage >= allPagesCount - 1 && nextPage) return;
+
+      params.append('page', `${currentPage + modifierPageNumber}`);
+      params.append('limit', `${paginationLimit || ''}`);
+      url.search = params.toString();
+      paginationUrls.nextPage = nextPage ? url.toString() : paginationUrls.nextPage;
+      paginationUrls.prevPage = !nextPage ? url.toString() : paginationUrls.prevPage;
+    });
+
+    return paginationUrls;
   };
 }
 

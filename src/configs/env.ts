@@ -16,5 +16,5 @@ export default {
   nodeEnv,
   port: process.env.PORT || '8080',
   logs: 'dev',
-  domain: `http://${process.env.DB_HOST}:${process.env.PORT}`,
+  domain: `${process.env.DOMAIN}${process.env.PORT}`,
 } as EnvConfig;
