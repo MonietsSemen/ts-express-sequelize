@@ -5,11 +5,17 @@ import { URLSearchParams } from 'url';
 import { CreatePagination, SafeController, Pagination } from '@/controllers/decorators';
 import Collection from '@/models/collection';
 import Product from '@/models/product';
+import { Filters } from '@/middlewares/collection-filters';
 import env from '@/configs/env';
 
 type LoadedCollectionResponse<T = any> = Response<
   T,
-  { collection: Collection; [index: string]: unknown }
+  { collection: Collection; pagination: Pagination; [index: string]: unknown }
+>;
+
+type ShowCollectionResponse<T = any> = Response<
+  T,
+  { collection: Collection; pagination: Pagination; filters: Filters; [index: string]: unknown }
 >;
 
 class CollectionController {
@@ -26,20 +32,8 @@ class CollectionController {
 
   @SafeController
   @CreatePagination
-  static async show(
-    req: Request,
-    res: Response<
-      any,
-      {
-        collection: Collection;
-        pagination: Pagination;
-        priceFilter: number[] | undefined;
-        dateFilter: string[] | undefined;
-      }
-    >,
-    _next: NextFunction,
-  ) {
-    const { collection, pagination, priceFilter, dateFilter } = res.locals;
+  static async show(req: Request, res: ShowCollectionResponse, _next: NextFunction) {
+    const { collection, pagination, filters } = res.locals;
 
     const currentPageNumber = pagination.offset / pagination.limit;
     const productsQuery: any = {
@@ -50,8 +44,8 @@ class CollectionController {
       offset: pagination.offset,
     };
 
-    if (priceFilter !== undefined) productsQuery.where.price = priceFilter;
-    if (dateFilter !== undefined) productsQuery.where.createdAt = dateFilter;
+    if (filters?.priceFilter !== undefined) productsQuery.where.price = filters.priceFilter;
+    if (filters?.dateFilter !== undefined) productsQuery.where.createdAt = filters.dateFilter;
 
     const items = await Product.findAndCountAll(productsQuery);
 
