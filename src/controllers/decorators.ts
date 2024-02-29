@@ -30,7 +30,7 @@ export function CreatePagination(controllerMethod: any, context: ClassMethodDeco
         offset: currentPageNumber * limitNumber,
       };
 
-      res.locals = { ...res.locals, pagination, limitNumber, currentPageNumber };
+      res.locals = { ...res.locals, pagination };
 
       return await controllerMethod.call(this, req, res, next);
     } catch (e) {

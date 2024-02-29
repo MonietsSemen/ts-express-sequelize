@@ -28,26 +28,21 @@ class CollectionController {
   @SafeController
   @CreatePagination
   static async show(
-    _req: Request,
+    req: Request,
     res: Response<
       any,
-      {
-        collection: Collection;
-        pagination: Pagination;
-        limitNumber: number;
-        currentPageNumber: number;
-      } & Record<string, any> &
-        Locals
+      Record<string, any> &
+        Locals & {
+          collection: Collection;
+          pagination: Pagination;
+          limitNumber: number;
+        }
     >,
     _next: NextFunction,
   ) {
-    const { collection, pagination, limitNumber, currentPageNumber } = res.locals;
-    // filtration
-    const { priceMin, priceMax } = _req.query;
+    const { collection, pagination, limitNumber, priceFilter, dateFilter } = res.locals;
 
-    const priceMinNumber = parseInt(priceMin as string, 10) || undefined;
-    const priceMaxNumber = parseInt(priceMax as string, 10) || undefined;
-
+    const currentPageNumber = pagination.offset / pagination.limit;
     const productsQuery: any = {
       where: {
         collectionId: collection.id,
@@ -56,40 +51,31 @@ class CollectionController {
       offset: pagination.offset,
     };
 
-    if (priceMinNumber || priceMaxNumber) {
-      productsQuery.where.price = {
-        [Op.between]: [priceMinNumber || 0, priceMaxNumber || 99999],
-      };
-    }
+    if (priceFilter !== undefined) productsQuery.where.price = priceFilter;
+    if (dateFilter !== undefined) productsQuery.where.createdAt = dateFilter;
 
     const items = await Product.findAndCountAll(productsQuery);
 
     if (!items) throw res.status(NOT_FOUND).send('Products not found');
 
-    const allPagesCount = Math.ceil(items.count / limitNumber > 1 ? items.count / limitNumber : 1);
+    const allPagesCount = Math.ceil(
+      items.count / pagination.limit > 1 ? items.count / limitNumber : 1,
+    );
 
-    const createPaginationUrl = (nextPage: boolean) => {
-      const url: any = new URL(`${env.domain}${_req.originalUrl}`);
-      const params: any = new URLSearchParams();
-      // if previous page - do not modified page number
-      const modifierPageNumber: number = !nextPage ? 0 : 2;
-
-      if (currentPageNumber < 1 && !nextPage) {
-        return null;
-      }
-
-      if (currentPageNumber >= allPagesCount - 1 && nextPage) {
-        return null;
-      }
-
-      params.append('page', `${currentPageNumber + modifierPageNumber}`);
-      params.append('limit', `${pagination.limit || ''}`);
-      url.search = params.toString();
-      return url.toString();
-    };
-
-    const nextPageUrl = createPaginationUrl(true);
-    const prevPageUrl = createPaginationUrl(false);
+    const nextPageUrl = CollectionController.createPaginationUrl(
+      true,
+      pagination.limit,
+      currentPageNumber,
+      req.originalUrl,
+      allPagesCount,
+    );
+    const prevPageUrl = CollectionController.createPaginationUrl(
+      false,
+      pagination.limit,
+      currentPageNumber,
+      req.originalUrl,
+      allPagesCount,
+    );
     const responseData = {
       collection: res.locals.collection,
       collectionProducts: items,
@@ -134,6 +120,32 @@ class CollectionController {
 
     res.status(NO_CONTENT).send();
   }
+
+  static createPaginationUrl = (
+    nextPage: boolean,
+    paginationLimit: number,
+    currentPage: number,
+    originalUrl: string,
+    allPagesCount: number,
+  ) => {
+    const url: any = new URL(`${env.domain}${originalUrl}`);
+    const params: any = new URLSearchParams();
+    // if previous page - do not modified page number
+    const modifierPageNumber: number = !nextPage ? 0 : 2;
+
+    if (currentPage < 1 && !nextPage) {
+      return null;
+    }
+
+    if (currentPage >= allPagesCount - 1 && nextPage) {
+      return null;
+    }
+
+    params.append('page', `${currentPage + modifierPageNumber}`);
+    params.append('limit', `${paginationLimit || ''}`);
+    url.search = params.toString();
+    return url.toString();
+  };
 }
 
 export default CollectionController;
