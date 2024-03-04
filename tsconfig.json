@@ -24,6 +24,8 @@
       "@/middlewares/*": ["middlewares/*"],
       "@/models/*": ["models/*"],
       "@/routes/*": ["routes/*"],
+      "@/views/*": ["views/*"],
+      "@/passport/*": ["passport/*"]
     }
   },
   "include": ["src/**/*"],

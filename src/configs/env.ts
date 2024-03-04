@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import * as process from 'process';
 
 dotenv.config();
 
@@ -8,10 +9,18 @@ type EnvConfig = {
   nodeEnv: 'development' | 'test' | 'production';
   port: string;
   logs: 'common' | 'dev';
+  domain: string;
+  productsUrl: string;
+  userUrl: string;
+  sessionSecret: string;
 };
 
 export default {
   nodeEnv,
   port: process.env.PORT || '8080',
   logs: 'dev',
+  domain: `${process.env.DOMAIN}${process.env.PORT}`,
+  productsUrl: '/api/products',
+  userUrl: '/user/login',
+  sessionSecret: process.env.SESSION_SECRET,
 } as EnvConfig;
