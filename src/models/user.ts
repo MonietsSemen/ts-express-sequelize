@@ -1,13 +1,14 @@
 import {
+  CreationOptional,
+  DataTypes,
+  HasManyCreateAssociationMixin,
+  HasManyGetAssociationsMixin,
   InferAttributes,
   InferCreationAttributes,
   Model,
   Sequelize,
-  DataTypes,
-  CreationOptional,
-  HasManyCreateAssociationMixin,
-  HasManyGetAssociationsMixin,
 } from 'sequelize';
+import bcrypt from 'bcrypt';
 import Order from '@/models/order';
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -32,6 +33,10 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare createOrder: HasManyCreateAssociationMixin<Order, 'userId'>;
 
   declare getOrders: HasManyGetAssociationsMixin<Order>;
+
+  async verifyPassword(password: string) {
+    return bcrypt.compare(password, this.password);
+  }
 }
 
 export const init = (sequelize: Sequelize) =>
@@ -45,7 +50,10 @@ export const init = (sequelize: Sequelize) =>
       },
       name: DataTypes.STRING,
       email: DataTypes.STRING,
-      password: DataTypes.STRING,
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       role: {
         type: DataTypes.STRING,
         defaultValue: 'staff',
@@ -58,6 +66,18 @@ export const init = (sequelize: Sequelize) =>
     {
       sequelize,
       tableName: 'users',
+      defaultScope: {
+        attributes: { exclude: ['password'] },
+      },
+      hooks: {
+        beforeSave: async (user: User) => {
+          if (user.changed('password')) {
+            const saltRounds = 16;
+            const password = await bcrypt.hash(user.password, saltRounds);
+            user.set('password', password);
+          }
+        },
+      },
     },
   );
 
