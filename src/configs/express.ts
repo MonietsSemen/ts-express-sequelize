@@ -14,6 +14,7 @@ import router from '@/routes/index';
 import sequelize from '@/models/index';
 import * as Strategies from '@/passport/strategies';
 import * as Serializer from '@/passport/serializer';
+import authRouter from "@/routes/auth.router";
 
 const app: Application = express();
 
@@ -46,6 +47,7 @@ passport.use('local', Strategies.local);
 passport.serializeUser(Serializer.serialize);
 passport.deserializeUser(Serializer.deserialize);
 
+app.use('/user', authRouter);
 app.use('/api', router);
 app.use(errorHandler);
 

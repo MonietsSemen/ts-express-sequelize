@@ -1,12 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
-import passport from 'passport';
-import process from 'process';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 import Order from '@/models/order';
-import env from "@/configs/env";
 
 type LoadedUserResponse<T = any> = Response<T, { user: User; [index: string]: unknown }>;
 class UserController {
@@ -63,57 +60,6 @@ class UserController {
     await res.locals.user.destroy();
 
     res.status(NO_CONTENT).send();
-  }
-
-  @SafeController
-  static async login(req: Request, res: Response, next: NextFunction) {
-    passport.authenticate('local', { session: false }, (err: Error, user: User, info: any) => {
-      if (err) {
-        return next(err);
-      }
-
-      if (user) {
-        req.logIn(user, (newErr) => {
-          return newErr ? next(newErr) : res.redirect(env.productsUrl);
-        });
-      } else {
-        res.redirect(env.userUrl);
-      }
-    })(req, res, next);
-  }
-
-  @SafeController
-  static async logout(req: Request, res: Response, next: NextFunction) {
-    try {
-      req.logout((err) => {
-        console.error(err);
-      });
-      res.redirect(env.userUrl);
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  @SafeController
-  static async register(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userData = req.body as CreationAttributes<User>;
-      const user = await User.create(userData);
-
-      await new Promise<void>((resolve, reject) => {
-        req.logIn(user, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      res.redirect(env.productsUrl);
-    } catch (err) {
-      next(err);
-    }
   }
 }
 

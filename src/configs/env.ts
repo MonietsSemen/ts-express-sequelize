@@ -20,7 +20,7 @@ export default {
   port: process.env.PORT || '8080',
   logs: 'dev',
   domain: `${process.env.DOMAIN}${process.env.PORT}`,
-  productsUrl: process.env.PRODUCTS_URL,
-  userUrl: process.env.USER_URL,
+  productsUrl: '/api/products',
+  userUrl: '/user/login',
   sessionSecret: process.env.SESSION_SECRET,
 } as EnvConfig;
