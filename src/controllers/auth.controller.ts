@@ -1,19 +1,30 @@
 import { NextFunction, Request, Response } from 'express';
 import { CreationAttributes } from 'sequelize';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 import env from '@/configs/env';
-import { customJwt } from '@/passport/strategies';
 
 class AuthController {
   @SafeController
   static async login(req: Request, res: Response, next: NextFunction) {
-    passport.authenticate('customJwt', {
-      session: false,
-      successRedirect: env.productsUrl,
-      failureRedirect: env.userUrl,
-    })(req, res, next);
+    passport.authenticate(
+      'local',
+      { session: false },
+      async (err: Error, user: User, info: any) => {
+        if (err) return next(err);
+        if (!user) return res.redirect(`${env.userUrl}?error=invalid_credentials`);
+
+        const token = await AuthController.generateToken(user);
+        res.json({
+          your_private_token_for_next_time: {
+            expired_time: env.sessionTokenTime,
+            token,
+          },
+        });
+      },
+    )(req, res, next);
   }
 
   @SafeController
@@ -48,6 +59,12 @@ class AuthController {
     } catch (err) {
       next(err);
     }
+  }
+
+  static async generateToken(user: User) {
+    return jwt.sign({ id: user.id, email: user.email }, env.sessionSecret, {
+      expiresIn: env.sessionTokenTime,
+    });
   }
 }
 
