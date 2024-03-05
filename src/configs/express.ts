@@ -14,7 +14,9 @@ import router from '@/routes/index';
 import sequelize from '@/models/index';
 import * as Strategies from '@/passport/strategies';
 import * as Serializer from '@/passport/serializer';
-import authRouter from "@/routes/auth.router";
+import authRouter from '@/routes/auth.router';
+import { ExtractJwt } from 'passport-jwt';
+import { customJwt } from "@/passport/strategies";
 
 const app: Application = express();
 
@@ -40,12 +42,13 @@ app.use(session({ secret: env.sessionSecret }));
 
 // Passport:
 app.use(passport.initialize());
-app.use(passport.session());
-passport.use('local', Strategies.local);
+passport.use('customJwt', Strategies.customJwt);
 
+// app.use(passport.session());
+// passport.use('local', Strategies.local);
 // Serializer:
-passport.serializeUser(Serializer.serialize);
-passport.deserializeUser(Serializer.deserialize);
+// passport.serializeUser(Serializer.serialize);
+// passport.deserializeUser(Serializer.deserialize);
 
 app.use('/user', authRouter);
 app.use('/api', router);

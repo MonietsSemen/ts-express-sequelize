@@ -4,11 +4,13 @@ import passport from 'passport';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 import env from '@/configs/env';
+import { customJwt } from '@/passport/strategies';
 
 class AuthController {
   @SafeController
   static async login(req: Request, res: Response, next: NextFunction) {
-    passport.authenticate('local', {
+    passport.authenticate('customJwt', {
+      session: false,
       successRedirect: env.productsUrl,
       failureRedirect: env.userUrl,
     })(req, res, next);
