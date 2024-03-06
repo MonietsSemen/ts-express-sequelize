@@ -23,7 +23,7 @@ const opts = {
 
 export const customJwt = new JwtStrategy(opts, async (jwt_payload: any, done: any) => {
   try {
-    const user = await User.findByPk(jwt_payload.id);
+    const user = await User.findByPk(jwt_payload.sub);
 
     if (!user) {
       return done(null, false, { message: 'User not found' });

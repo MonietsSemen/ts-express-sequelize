@@ -9,21 +9,25 @@ export default class Authenticate {
   @SafeController
   static async mustAuthenticatedMw(req: Request, res: Response, next: NextFunction) {
     try {
-      passport.authenticate(
-        'customJwt',
-        { session: false },
-        (err: Error, user: User, info: any) => {
-          if (err) {
-            return next(err);
-          }
-          if (!user) {
-            return res.redirect(env.userUrl);
-          }
-          next();
-        },
-      )(req, res, next);
+      passport.authenticate('customJwt', {
+        session: false,
+        failureRedirect: env.userUrl,
+      })(req, res, next);
     } catch (error) {
       next(error);
     }
   }
 }
+
+/*
+(err: Error, user: User, info: any) => {
+  if (err) {
+    return next(err);
+  }
+  if (!user) {
+    return res.redirect(env.userUrl);
+  }
+
+  // res.locals = { ...res.locals, user };
+  next();
+} */

@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 import env from '@/configs/env';
+import { NOT_FOUND } from "http-status";
 
 class AuthController {
   @SafeController
@@ -62,7 +63,7 @@ class AuthController {
   }
 
   static async generateToken(user: User) {
-    return jwt.sign({ id: user.id, email: user.email }, env.sessionSecret, {
+    return jwt.sign({ sub: user.id, email: user.email }, env.sessionSecret, {
       expiresIn: env.sessionTokenTime,
     });
   }

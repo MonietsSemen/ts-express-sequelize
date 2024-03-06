@@ -37,7 +37,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 if (!sequelize) throw new Error("Can't connect to database");
 
 app.use(cookieParser());
-app.use(session({ secret: env.sessionSecret }));
+app.use(
+  session({
+    resave: false,
+    saveUninitialized: false,
+    secret: env.sessionSecret,
+  }),
+);
 
 // Passport:
 app.use(passport.initialize());
