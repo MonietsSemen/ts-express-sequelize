@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import { CreationAttributes } from 'sequelize';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import { NOT_FOUND } from 'http-status';
 import User from '@/models/user';
 import { SafeController } from '@/controllers/decorators';
 import env from '@/configs/env';
-import { NOT_FOUND } from "http-status";
 
 class AuthController {
   @SafeController
@@ -19,10 +19,8 @@ class AuthController {
 
         const token = await AuthController.generateToken(user);
         res.json({
-          your_private_token_for_next_time: {
-            expired_time: env.sessionTokenTime,
-            token,
-          },
+          expired_time: env.sessionTokenTime,
+          token,
         });
       },
     )(req, res, next);

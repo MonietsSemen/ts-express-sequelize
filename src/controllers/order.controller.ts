@@ -4,16 +4,17 @@ import { CreationAttributes } from 'sequelize';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import Order from '@/models/order';
 import User from '@/models/user';
-import { SafeController } from '@/controllers/decorators';
-import authController from '@/controllers/auth.controller';
+import { GetUser, SafeController } from '@/controllers/decorators';
 
 type LoadedOrderResponse<T = any> = Response<T, { order: Order; [index: string]: unknown }>;
 
 class OrderController {
+  @GetUser
   @SafeController
   static async load(req: Request, res: Response, next: NextFunction) {
     const { orderId } = req.params;
-    const localUser = OrderController.getUser(req, res, next);
+    const { localUser } = res.locals;
+
     const order = await Order.findOne({
       where: {
         id: orderId,
@@ -32,9 +33,10 @@ class OrderController {
     res.json({ order: res.locals.order });
   }
 
+  @GetUser
   @SafeController
-  static async list(req: Request, res: Response, next: NextFunction) {
-    const localUser = OrderController.getUser(req, res, next);
+  static async list(_req: Request, res: Response, _next: NextFunction) {
+    const { localUser } = res.locals;
 
     const orders = await Order.findAll({
       where: {
@@ -45,10 +47,11 @@ class OrderController {
     res.json({ orders });
   }
 
+  @GetUser
   @SafeController
-  static async create(req: Request, res: Response, next: NextFunction) {
+  static async create(req: Request, res: Response, _next: NextFunction) {
     const orderData = req.body as CreationAttributes<Order>;
-    const localUser = OrderController.getUser(req, res, next);
+    const { localUser } = res.locals;
     const user = await User.findByPk(localUser.id);
 
     if (!user) throw res.status(NOT_FOUND).send('User not found');
@@ -58,20 +61,13 @@ class OrderController {
     res.json({ orders });
   }
 
+  @GetUser
   @SafeController
   static async update(req: Request, res: Response, _next: NextFunction) {
     const orderData = req.body as CreationAttributes<Order>;
     const orders = await res.locals.order.update(orderData);
 
     res.json({ orders });
-  }
-
-  static getUser(req: Request, res: Response, _next: NextFunction) {
-    const localUser = (req.user as User)?.dataValues;
-
-    if (!localUser) throw res.status(NOT_FOUND).send();
-
-    return localUser;
   }
 }
 

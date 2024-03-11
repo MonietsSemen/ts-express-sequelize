@@ -2,14 +2,18 @@ import { NextFunction, Request, Response } from 'express';
 import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
-import { SafeController } from '@/controllers/decorators';
-import Order from '@/models/order';
+import { GetUser, SafeController } from '@/controllers/decorators';
 
-type LoadedUserResponse<T = any> = Response<T, { user: User; [index: string]: unknown }>;
+type LoadedUserResponse<T = any> = Response<
+  T,
+  { user: User; localUser: User; [index: string]: unknown }
+>;
+
 class UserController {
+  @GetUser
   @SafeController
-  static async load(req: Request, res: Response, next: NextFunction) {
-    const localUser = UserController.getUser(req, res, next);
+  static async load(_req: Request, res: Response, next: NextFunction) {
+    const { localUser } = res.locals;
     const user = await User.findByPk(localUser.id);
 
     if (!user) throw res.status(NOT_FOUND).send();
@@ -18,27 +22,17 @@ class UserController {
     next();
   }
 
+  @GetUser
   @SafeController
-  static async show(req: Request, res: LoadedUserResponse, next: NextFunction) {
-    const localUser = UserController.getUser(req, res, next);
-    type NewResponse = {
-      user: User;
-      message?: string;
-    };
+  static async show(req: Request, res: LoadedUserResponse, _next: NextFunction) {
+    const { userId } = req.params;
+    const user = await User.findByPk(userId);
 
-    const newResponse: NewResponse = {
-      user: res.locals.user,
-    };
-
-    if (localUser.role !== 'admin')
-      newResponse.message = "You're not enough permissions for see another accounts";
-    res.json({ newResponse });
+    res.json({ user });
   }
 
   @SafeController
-  static async list(req: Request, res: Response, next: NextFunction) {
-    const localUser = UserController.getUser(req, res, next);
-    if (localUser.role !== 'admin') throw res.status(200).send("You're not enough permissions");
+  static async list(_req: Request, res: Response, _next: NextFunction) {
     const users = await User.findAll();
 
     res.json({ users });
@@ -65,14 +59,6 @@ class UserController {
     await res.locals.user.destroy();
 
     res.status(NO_CONTENT).send();
-  }
-
-  static getUser(req: Request, res: Response, _next: NextFunction) {
-    const localUser = (req.user as User)?.dataValues;
-
-    if (!localUser) throw res.status(NOT_FOUND).send();
-
-    return localUser;
   }
 }
 

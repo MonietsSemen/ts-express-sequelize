@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { NOT_FOUND } from 'http-status';
 
 /** Wrap express middleware with error handles and send error to error-handler  */
 export function SafeController(controllerMethod: any, context: ClassMethodDecoratorContext) {
@@ -36,3 +37,21 @@ export function CreatePagination(controllerMethod: any, context: ClassMethodDeco
     }
   };
 }
+
+export function GetUser(controllerMethod: any, context: ClassMethodDecoratorContext) {
+  return async function wrapper(this: any, ...args: [Request, Response, NextFunction]) {
+    const [req, res, next] = args;
+    try {
+      const localUser = req.user;
+
+      if (!localUser) throw res.status(NOT_FOUND).send();
+
+      res.locals = { ...res.locals, localUser };
+
+      return controllerMethod.call(this, req, res, next);
+    } catch (e) {
+      next(e);
+    }
+  };
+}
+

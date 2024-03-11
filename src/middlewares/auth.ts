@@ -18,16 +18,3 @@ export default class Authenticate {
     }
   }
 }
-
-/*
-(err: Error, user: User, info: any) => {
-  if (err) {
-    return next(err);
-  }
-  if (!user) {
-    return res.redirect(env.userUrl);
-  }
-
-  // res.locals = { ...res.locals, user };
-  next();
-} */
