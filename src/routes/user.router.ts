@@ -8,11 +8,11 @@ router.param('userId', UserController.load);
 
 router
   .route('/')
-  .get(Authorization.roleVerification, UserController.list)
+  .get(Authorization.roleVerification('admin'), UserController.list)
   .post(UserController.create);
 router
   .route('/:userId')
-  .get(Authorization.roleVerification, UserController.show)
+  .get(Authorization.roleVerification('admin'), UserController.show)
   .put(UserController.update)
   .delete(UserController.destroy);
 

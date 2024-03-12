@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { NOT_FOUND } from 'http-status';
 
 /** Wrap express middleware with error handles and send error to error-handler  */
 export function SafeController(controllerMethod: any, context: ClassMethodDecoratorContext) {
@@ -44,7 +43,7 @@ export function GetUser(controllerMethod: any, context: ClassMethodDecoratorCont
     try {
       const localUser = req.user;
 
-      if (!localUser) throw res.status(NOT_FOUND).send();
+      if (!localUser) throw res.status(401).json();
 
       res.locals = { ...res.locals, localUser };
 
@@ -54,4 +53,3 @@ export function GetUser(controllerMethod: any, context: ClassMethodDecoratorCont
     }
   };
 }
-
