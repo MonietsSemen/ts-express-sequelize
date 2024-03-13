@@ -12,6 +12,7 @@ type EnvConfig = {
   domain: string;
   productsUrl: string;
   userUrl: string;
+  sessionTokenTime: string;
   sessionSecret: string;
 };
 
@@ -22,5 +23,6 @@ export default {
   domain: `${process.env.DOMAIN}${process.env.PORT}`,
   productsUrl: '/api/products',
   userUrl: '/user/login',
+  sessionTokenTime: '1h',
   sessionSecret: process.env.SESSION_SECRET,
 } as EnvConfig;

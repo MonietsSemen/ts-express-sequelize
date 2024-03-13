@@ -2,15 +2,19 @@ import { NextFunction, Request, Response } from 'express';
 import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
-import { SafeController } from '@/controllers/decorators';
-import Order from '@/models/order';
+import { GetUser, SafeController } from '@/controllers/decorators';
 
-type LoadedUserResponse<T = any> = Response<T, { user: User; [index: string]: unknown }>;
+type LoadedUserResponse<T = any> = Response<
+  T,
+  { user: User; localUser: User; [index: string]: unknown }
+>;
+
 class UserController {
+  @GetUser
   @SafeController
-  static async load(req: Request, res: Response, next: NextFunction) {
-    const { userId } = req.params;
-    const user = await User.findByPk(userId);
+  static async load(_req: Request, res: Response, next: NextFunction) {
+    const { localUser } = res.locals;
+    const user = await User.findByPk(localUser.id);
 
     if (!user) throw res.status(NOT_FOUND).send();
 
@@ -18,18 +22,13 @@ class UserController {
     next();
   }
 
+  @GetUser
   @SafeController
-  static async show(_req: Request, res: LoadedUserResponse, _next: NextFunction) {
-    // eslint-disable-next-line no-shadow
-    const { user } = res.locals;
+  static async show(req: Request, res: LoadedUserResponse, _next: NextFunction) {
+    const { userId } = req.params;
+    const user = await User.findByPk(userId);
 
-    const orders = await Order.findAll({
-      where: {
-        userId: user.id,
-      },
-    });
-
-    res.json({ user: res.locals.user, userOrders: orders });
+    res.json({ user });
   }
 
   @SafeController
