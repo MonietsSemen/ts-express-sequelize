@@ -19,7 +19,9 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "cache-manager-ioredis": "^2.1.0",
     "connect-flash": "^0.1.1",
+    "connect-redis": "^7.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -38,10 +40,12 @@
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "pug": "^3.0.2",
+    "redis": "^4.6.13",
     "sequelize": "^6.37.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cache-manager-ioredis": "^2.0.6",
     "@types/connect-flash": "^0.0.40",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
@@ -55,6 +59,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.11.0",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "cache-manager": "^5.4.0",
     "concurrently": "8.0.1",
     "eslint": "8.56.0",
     "eslint-config-airbnb": "19.0.4",

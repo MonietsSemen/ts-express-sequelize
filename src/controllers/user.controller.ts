@@ -3,6 +3,7 @@ import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
 import { GetUser, SafeController } from '@/controllers/decorators';
+import cache from '@/utils/cashe';
 
 type LoadedUserResponse<T = any> = Response<
   T,
@@ -31,9 +32,42 @@ class UserController {
     res.json({ user });
   }
 
+  @GetUser
+  @SafeController
+  static async showAlt(req: Request, res: LoadedUserResponse, _next: NextFunction) {
+    const { userId } = req.params;
+
+    const cashedUser: string | null = await cache.get(`${userId}`);
+
+    const user = cashedUser
+      ? JSON.parse(cashedUser)
+      : await User.findByPk(userId).then(async (newUser) => {
+          await cache.set(`${userId}`, JSON.stringify(newUser));
+          await cache.expire(`${userId}`, 60);
+          return newUser;
+        });
+
+    res.json({ user });
+  }
+
   @SafeController
   static async list(_req: Request, res: Response, _next: NextFunction) {
     const users = await User.findAll();
+
+    res.json({ users });
+  }
+
+  @SafeController
+  static async listAlt(_req: Request, res: Response, _next: NextFunction) {
+    const cashedUsers: string | null = await cache.get('allUsers');
+
+    const users = cashedUsers
+      ? JSON.parse(cashedUsers)
+      : await User.findAll().then(async (newUsers) => {
+          await cache.set('allUsers', JSON.stringify(newUsers));
+          await cache.expire('allUsers', 60);
+          return newUsers;
+        });
 
     res.json({ users });
   }
