@@ -15,6 +15,9 @@ import sequelize from '@/models/index';
 import * as Strategies from '@/passport/strategies';
 import * as Serializer from '@/passport/serializer';
 import authRouter from '@/routes/auth.router';
+import { createBullBoard } from '@bull-board/api';
+import { ExpressAdapter } from '@bull-board/express';
+import JobFactory from '@/utils/jobs/bull-factory';
 import { customJwt } from '@/passport/strategies';
 
 const app: Application = express();
@@ -44,6 +47,17 @@ app.use(
     secret: env.sessionSecret,
   }),
 );
+
+// background jobs UI
+const serverAdapter = new ExpressAdapter();
+const { setQueues } = createBullBoard({
+  queues: JobFactory.createAll(),
+  serverAdapter,
+});
+
+setQueues(JobFactory.createAll());
+serverAdapter.setBasePath('/admin/bull/queues');
+app.use('/admin/bull/queues', serverAdapter.getRouter());
 
 // Passport:
 app.use(passport.initialize());

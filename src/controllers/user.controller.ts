@@ -4,6 +4,7 @@ import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
 import { GetUser, SafeController } from '@/controllers/decorators';
 import cache from '@/utils/cashe';
+import JobFactory from '@/utils/jobs/bull-factory';
 
 type LoadedUserResponse<T = any> = Response<
   T,
@@ -36,6 +37,8 @@ class UserController {
   @SafeController
   static async showAlt(req: Request, res: LoadedUserResponse, _next: NextFunction) {
     const { userId } = req.params;
+    await JobFactory.add('my-queue', { userId });
+
     const user = await cache.wrap(`${userId}`, async () => {
       await User.findByPk(userId).then(async (newUser) => {
         return newUser;
@@ -59,6 +62,8 @@ class UserController {
         return newUsers;
       });
     });
+
+    await JobFactory.add('second-process', { users });
 
     res.json({ users });
   }
