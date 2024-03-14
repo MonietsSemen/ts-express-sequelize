@@ -36,16 +36,11 @@ class UserController {
   @SafeController
   static async showAlt(req: Request, res: LoadedUserResponse, _next: NextFunction) {
     const { userId } = req.params;
-
-    const cashedUser: string | null = await cache.get(`${userId}`);
-
-    const user = cashedUser
-      ? JSON.parse(cashedUser)
-      : await User.findByPk(userId).then(async (newUser) => {
-          await cache.set(`${userId}`, JSON.stringify(newUser));
-          await cache.expire(`${userId}`, 60);
-          return newUser;
-        });
+    const user = await cache.wrap(`${userId}`, async () => {
+      await User.findByPk(userId).then(async (newUser) => {
+        return newUser;
+      });
+    });
 
     res.json({ user });
   }
@@ -59,15 +54,11 @@ class UserController {
 
   @SafeController
   static async listAlt(_req: Request, res: Response, _next: NextFunction) {
-    const cashedUsers: string | null = await cache.get('allUsers');
-
-    const users = cashedUsers
-      ? JSON.parse(cashedUsers)
-      : await User.findAll().then(async (newUsers) => {
-          await cache.set('allUsers', JSON.stringify(newUsers));
-          await cache.expire('allUsers', 60);
-          return newUsers;
-        });
+    const users = await cache.wrap('allUsers', async () => {
+      await User.findAll().then(async (newUsers) => {
+        return newUsers;
+      });
+    });
 
     res.json({ users });
   }

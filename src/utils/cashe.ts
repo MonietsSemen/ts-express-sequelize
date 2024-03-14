@@ -1,13 +1,24 @@
-import { createClient } from 'redis';
+import cacheManager from 'cache-manager';
+import redisStore from 'cache-manager-ioredis';
+import env from '@/configs/env';
 
-const redisClient = createClient();
+const { redis } = env;
 
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
+const redisCache = cacheManager.caching({
+  store: redisStore,
+  host: redis.host,
+  port: redis.port,
+  password: redis.password,
+  maxSize: 10000000, // 10 mb
+  db: 0,
+  ttl: 60,
+});
 
-redisClient.connect();
+// @ts-ignore
+const redisClient = redisCache.store.getClient();
 
 redisClient.on('error', (err: Error) => {
   console.error(err);
 });
 
-export default redisClient;
+export default redisCache;
