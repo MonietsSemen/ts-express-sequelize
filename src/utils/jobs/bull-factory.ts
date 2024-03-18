@@ -11,7 +11,7 @@ const config = {
   },
 };
 
-const jobsWithUI = ['my-queue', 'second-process'];
+const jobsWithUI = ['my-queue', 'second-process', 'timer'];
 
 export default class JobFactory {
   static create(name: string) {
@@ -30,6 +30,6 @@ export default class JobFactory {
     options?: Record<string, unknown>,
   ) {
     const job = this.create(name);
-    await job.add(param, { removeOnComplete: true, ...options });
+    await job.add(param, { removeOnComplete: false, ...options });
   }
 }

@@ -48,6 +48,8 @@
   "devDependencies": {
     "@bull-board/api": "^5.15.1",
     "@bull-board/express": "^5.15.1",
+    "@sentry/node": "^7.107.0",
+    "@sentry/tracing": "^7.107.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cache-manager-ioredis": "^2.0.6",
     "@types/connect-flash": "^0.0.40",

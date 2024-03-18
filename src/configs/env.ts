@@ -19,6 +19,10 @@ type EnvConfig = {
     password: string;
     port: string;
   };
+  sentry: {
+    environment: string;
+    dsn: string;
+  };
 };
 
 export default {
@@ -34,5 +38,9 @@ export default {
     host: process.env.REDIS_HOST,
     password: process.env.REDIS_PASSWORD,
     port: process.env.REDIS_PORT,
+  },
+  sentry: {
+    environment: process.env.SENTRY_ENVIRONMENT,
+    dsn: process.env.SENTRY_URL,
   },
 } as EnvConfig;

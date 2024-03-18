@@ -37,7 +37,8 @@ class UserController {
   @SafeController
   static async showAlt(req: Request, res: LoadedUserResponse, _next: NextFunction) {
     const { userId } = req.params;
-    await JobFactory.add('my-queue', { userId });
+    const delay = '10000';
+    await JobFactory.add('my-queue', { userId }, { delay });
 
     const user = await cache.wrap(`${userId}`, async () => {
       await User.findByPk(userId).then(async (newUser) => {
