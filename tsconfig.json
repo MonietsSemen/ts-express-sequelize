@@ -25,7 +25,8 @@
       "@/models/*": ["models/*"],
       "@/routes/*": ["routes/*"],
       "@/views/*": ["views/*"],
-      "@/passport/*": ["passport/*"]
+      "@/passport/*": ["passport/*"],
+      "@/utils/*": ["utils/*"],
     }
   },
   "include": ["src/**/*"],

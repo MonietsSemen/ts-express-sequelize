@@ -1,5 +1,4 @@
 import { RequestHandler, NextFunction, Request, Response } from 'express';
-import { GetUser, SafeController } from '@/controllers/decorators';
 import User from '@/models/user';
 
 export default class Authorization {

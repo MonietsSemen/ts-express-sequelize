@@ -3,6 +3,8 @@ import { NO_CONTENT, NOT_FOUND } from 'http-status';
 import { CreationAttributes } from 'sequelize';
 import User from '@/models/user';
 import { GetUser, SafeController } from '@/controllers/decorators';
+import cache from '@/utils/cashe';
+import JobFactory from '@/utils/jobs/bull-factory';
 
 type LoadedUserResponse<T = any> = Response<
   T,
@@ -31,9 +33,38 @@ class UserController {
     res.json({ user });
   }
 
+  @GetUser
+  @SafeController
+  static async showAlt(req: Request, res: LoadedUserResponse, _next: NextFunction) {
+    const { userId } = req.params;
+    const delay = '10000';
+    await JobFactory.add('my-queue', { userId }, { delay });
+
+    const user = await cache.wrap(`${userId}`, async () => {
+      await User.findByPk(userId).then(async (newUser) => {
+        return newUser;
+      });
+    });
+
+    res.json({ user });
+  }
+
   @SafeController
   static async list(_req: Request, res: Response, _next: NextFunction) {
     const users = await User.findAll();
+
+    res.json({ users });
+  }
+
+  @SafeController
+  static async listAlt(_req: Request, res: Response, _next: NextFunction) {
+    const users = await cache.wrap('allUsers', async () => {
+      await User.findAll().then(async (newUsers) => {
+        return newUsers;
+      });
+    });
+
+    await JobFactory.add('second-process', { users });
 
     res.json({ users });
   }
