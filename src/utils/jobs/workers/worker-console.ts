@@ -1,5 +1,6 @@
 import { Job } from 'bull';
 import { promisify } from 'util';
+
 const sleep = promisify(setTimeout);
 
 type PrintConsole = {

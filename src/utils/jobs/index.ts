@@ -9,4 +9,3 @@ sentry.init('JOBS');
 
 JobFactory.create('second-process').process(Workers.findUsers);
 JobFactory.create('my-queue').process(Workers.printConsole);
-JobFactory.create('timer').process(Workers.printConsole);

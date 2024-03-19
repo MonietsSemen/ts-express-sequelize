@@ -41,7 +41,7 @@ class UserController {
     await JobFactory.add('my-queue', { userId }, { delay });
 
     const user = await cache.wrap(`${userId}`, async () => {
-      await User.findByPk(userId).then(async (newUser) => {
+      return User.findByPk(userId).then(async (newUser) => {
         return newUser;
       });
     });

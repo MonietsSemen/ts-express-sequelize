@@ -18,12 +18,19 @@ const connections = {
     dialect: 'postgres',
   },
   production: {
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: `${process.env.DB_NAME}_production`,
-    host: process.env.DB_HOST,
+    username: process.env.DB_PROD_USERNAME,
+    password: process.env.DB_PROD_PASSWORD,
+    database: `${process.env.DB_PROD_NAME}`,
+    port: 5432,
+    host: process.env.DB_PROD_HOST,
     dialect: 'postgres',
-  },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      }
+    }
+  }
 };
 
 module.exports = connections;
