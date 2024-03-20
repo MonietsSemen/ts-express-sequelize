@@ -29,7 +29,7 @@ export default {
   nodeEnv,
   port: process.env.PORT || '8080',
   logs: 'dev',
-  domain: `${process.env.DOMAIN}${process.env.PORT}`,
+  domain: `${process.env.DOMAIN}:${process.env.PORT}`,
   productsUrl: '/api/products',
   userUrl: '/user/login',
   sessionTokenTime: '1h',
