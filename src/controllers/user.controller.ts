@@ -59,7 +59,7 @@ class UserController {
   @SafeController
   static async listAlt(_req: Request, res: Response, _next: NextFunction) {
     const users = await cache.wrap('allUsers', async () => {
-      await User.findAll().then(async (newUsers) => {
+      return User.findAll().then(async (newUsers) => {
         return newUsers;
       });
     });

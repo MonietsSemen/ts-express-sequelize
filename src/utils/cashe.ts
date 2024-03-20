@@ -5,11 +5,11 @@ import env from '@/configs/env';
 const { redis } = env;
 
 const redisCache = cacheManager.caching({
+  password: redis.password,
   store: redisStore,
   host: redis.host,
   port: redis.port,
-  password: redis.password,
-  maxSize: 10000000, // 10 mb
+  username: 'default',
   db: 0,
   ttl: 60,
 });
