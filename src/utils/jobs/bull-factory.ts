@@ -6,6 +6,7 @@ const { redis } = env;
 
 const config = {
   redis: {
+    password: redis.password,
     port: parseInt(redis.port, 10),
     host: redis.host,
   },

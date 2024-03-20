@@ -41,7 +41,7 @@ class UserController {
     await JobFactory.add('my-queue', { userId }, { delay });
 
     const user = await cache.wrap(`${userId}`, async () => {
-      await User.findByPk(userId).then(async (newUser) => {
+      return User.findByPk(userId).then(async (newUser) => {
         return newUser;
       });
     });
@@ -59,7 +59,7 @@ class UserController {
   @SafeController
   static async listAlt(_req: Request, res: Response, _next: NextFunction) {
     const users = await cache.wrap('allUsers', async () => {
-      await User.findAll().then(async (newUsers) => {
+      return User.findAll().then(async (newUsers) => {
         return newUsers;
       });
     });

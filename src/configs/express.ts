@@ -59,10 +59,6 @@ setQueues(JobFactory.createAll());
 serverAdapter.setBasePath('/admin/bull/queues');
 app.use('/admin/bull/queues', serverAdapter.getRouter());
 
-const today = Date.now();
-
-JobFactory.add('timer', { today }, { repeat: { cron: '* * * * *' } });
-
 // Passport:
 app.use(passport.initialize());
 passport.use('customJwt', Strategies.customJwt);

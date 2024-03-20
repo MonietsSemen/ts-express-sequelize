@@ -16,6 +16,7 @@ type AppModel = {
 
 function createConnection() {
   const options = config[env.nodeEnv] as Options;
+  console.log(options);
   return new Sequelize(options);
 }
 
